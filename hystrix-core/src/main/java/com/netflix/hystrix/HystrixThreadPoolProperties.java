@@ -51,7 +51,7 @@ public abstract class HystrixThreadPoolProperties {
     static int default_keepAliveTimeMinutes = 1; // minutes to keep a thread alive
     static int default_maxQueueSize = -1;        // size of queue (this can't be dynamically changed so we use 'queueSizeRejectionThreshold' to artificially limit and reject)
                                                  // -1 turns it off and makes us use SynchronousQueue
-    static boolean default_allow_maximum_size_to_diverge_from_core_size = false; //should the maximumSize config value get read and used in configuring the threadPool
+    static boolean default_allow_maximum_size_to_diverge_from_core_size = false; //should the maximumSize com.aaron.ren.config value get read and used in configuring the threadPool
                                                                                  //turning this on should be a conscious decision by the user, so we default it to false
 
     static int default_queueSizeRejectionThreshold = 5; // number of items in queue
@@ -116,7 +116,7 @@ public abstract class HystrixThreadPoolProperties {
     }
 
     /**
-     * Maximum thread-pool size configured for threadpool.  May conflict with other config, so if you need the
+     * Maximum thread-pool size configured for threadpool.  May conflict with other com.aaron.ren.config, so if you need the
      * actual value that gets passed to {@link ThreadPoolExecutor#setMaximumPoolSize(int)}, use {@link #actualMaximumSize()}
      *
      * @return {@code HystrixProperty<Integer>}

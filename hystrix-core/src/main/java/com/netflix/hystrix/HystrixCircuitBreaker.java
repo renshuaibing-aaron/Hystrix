@@ -1,18 +1,3 @@
-/**
- * Copyright 2012 Netflix, Inc.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.netflix.hystrix;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +9,7 @@ import rx.Subscriber;
 import rx.Subscription;
 
 /**
+ * 断路器接口
  * Circuit-breaker logic that is hooked into {@link HystrixCommand} execution and will stop allowing executions if failures have gone past the defined threshold.
  * <p>
  * The default (and only) implementation  will then allow a single retry after a defined sleepWindow until the execution
@@ -32,6 +18,7 @@ import rx.Subscription;
 public interface HystrixCircuitBreaker {
 
     /**
+     * 判断是否允许流量进来
      * Every {@link HystrixCommand} requests asks this if it is allowed to proceed or not.  It is idempotent and does
      * not modify any internal state, and takes into account the half-open logic which allows some requests through
      * after the circuit has been opened
@@ -41,6 +28,7 @@ public interface HystrixCircuitBreaker {
     boolean allowRequest();
 
     /**
+     * 断路器开启关闭
      * Whether the circuit is currently open (tripped).
      * 
      * @return boolean state of circuit breaker
@@ -68,6 +56,7 @@ public interface HystrixCircuitBreaker {
      * @ThreadSafe
      */
     class Factory {
+        //保存断路器的HashMap
         // String is HystrixCommandKey.name() (we can't use HystrixCommandKey directly as we can't guarantee it implements hashcode/equals correctly)
         private static ConcurrentHashMap<String, HystrixCircuitBreaker> circuitBreakersByCommand = new ConcurrentHashMap<String, HystrixCircuitBreaker>();
 
@@ -94,6 +83,7 @@ public interface HystrixCircuitBreaker {
             }
 
             // if we get here this is the first time so we need to initialize
+
 
             // Create and add to the map ... use putIfAbsent to atomically handle the possible race-condition of
             // 2 threads hitting this point at the same time and let ConcurrentHashMap provide us our thread-safety
@@ -139,8 +129,12 @@ public interface HystrixCircuitBreaker {
         private final HystrixCommandProperties properties;
         private final HystrixCommandMetrics metrics;
 
+        //Hystrix 内置断路器 HystrixCircuitBreaker 实现，一共有三种状态
+        //
         enum Status {
-            CLOSED, OPEN, HALF_OPEN;
+            CLOSED,//关闭
+            OPEN, //打开
+            HALF_OPEN; //半开
         }
 
         private final AtomicReference<Status> status = new AtomicReference<Status>(Status.CLOSED);

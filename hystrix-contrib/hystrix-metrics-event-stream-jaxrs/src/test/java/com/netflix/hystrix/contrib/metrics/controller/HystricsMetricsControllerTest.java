@@ -75,7 +75,7 @@ public class HystricsMetricsControllerTest extends JerseyTest {
 		try {
 			SystemConfiguration.setSystemProperties("test.properties");
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to load config file");
+			throw new RuntimeException("Failed to load com.aaron.ren.config file");
 		}
 		return new ResourceConfig(HystricsMetricsControllerTest.class, HystrixStreamFeature.class);
 	}

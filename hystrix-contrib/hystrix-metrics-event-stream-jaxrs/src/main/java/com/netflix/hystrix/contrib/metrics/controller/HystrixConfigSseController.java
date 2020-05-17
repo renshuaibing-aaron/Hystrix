@@ -32,7 +32,7 @@ import com.netflix.hystrix.contrib.metrics.HystrixStreamFeature;
 import com.netflix.hystrix.serial.SerialHystrixConfiguration;
 
 /**
- * Streams Hystrix config in text/event-stream format.
+ * Streams Hystrix com.aaron.ren.config in text/event-stream format.
  * <p>
  * Install by:
  * <p>
@@ -40,13 +40,13 @@ import com.netflix.hystrix.serial.SerialHystrixConfiguration;
  * <p>
  * 2) Register {@link HystrixStreamFeature} in your {@link Application}.
  * <p>
- * 3) Stream will be available at path /hystrix/config.stream
+ * 3) Stream will be available at path /hystrix/com.aaron.ren.config.stream
  * <p>
  *
  * @author justinjose28
  * 
  */
-@Path("/hystrix/config.stream")
+@Path("/hystrix/com.aaron.ren.config.stream")
 public class HystrixConfigSseController extends AbstractHystrixStreamController {
 
 	private static final AtomicInteger concurrentConnections = new AtomicInteger(0);

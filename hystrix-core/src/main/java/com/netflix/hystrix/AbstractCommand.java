@@ -1,18 +1,3 @@
-/**
- * Copyright 2013 Netflix, Inc.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.netflix.hystrix;
 
 import com.netflix.hystrix.HystrixCircuitBreaker.NoOpCircuitBreaker;
@@ -159,12 +144,21 @@ import java.util.concurrent.atomic.AtomicReference;
             HystrixCommandMetrics metrics, TryableSemaphore fallbackSemaphore, TryableSemaphore executionSemaphore,
             HystrixPropertiesStrategy propertiesStrategy, HystrixCommandExecutionHook executionHook) {
 
+        System.out.println("【初始化AbstractCommand】");
+        //初始化group，group主要是用来对不同的command key进行统一管理
         this.commandGroup = initGroupKey(group);
+        // 初始化command key，用来标识降级逻辑
         this.commandKey = initCommandKey(key, getClass());
+        // 初始化自定义的降级策略
         this.properties = initCommandProperties(this.commandKey, propertiesStrategy, commandPropertiesDefaults);
+        // 初始化线程池key，相同的线程池key将公用线程池
         this.threadPoolKey = initThreadPoolKey(threadPoolKey, this.commandGroup, this.properties.executionIsolationThreadPoolKeyOverride().get());
+
+        // 初始化监控器
         this.metrics = initMetrics(metrics, this.commandGroup, this.threadPoolKey, this.commandKey, this.properties);
+        // 初始化断路器
         this.circuitBreaker = initCircuitBreaker(this.properties.circuitBreakerEnabled().get(), circuitBreaker, this.commandGroup, this.commandKey, this.properties, this.metrics);
+        //// 初始化线程池
         this.threadPool = initThreadPool(threadPool, this.threadPoolKey, threadPoolPropertiesDefaults);
 
         //Strategies from plugins
@@ -300,6 +294,7 @@ import java.util.concurrent.atomic.AtomicReference;
     }
 
     /**
+     * 	异步调用，返回 rx.Observable 。向 Observable 注册 rx.Subscriber 处理结果
      * Used for asynchronous execution of command with a callback by subscribing to the {@link Observable}.
      * <p>
      * This eagerly starts execution of the command the same as {@link HystrixCommand#queue()} and {@link HystrixCommand#execute()}.
@@ -340,6 +335,7 @@ import java.util.concurrent.atomic.AtomicReference;
     protected abstract Observable<R> getFallbackObservable();
 
     /**
+     * 未调用，返回 rx.Observable 。向 Observable 注册 rx.Subscriber 处理结果
      * Used for asynchronous execution of command with a callback by subscribing to the {@link Observable}.
      * <p>
      * This lazily starts execution of the command once the {@link Observable} is subscribed to.
@@ -361,6 +357,7 @@ import java.util.concurrent.atomic.AtomicReference;
      * @throws IllegalStateException
      *             if invoked more than once
      */
+    @Override
     public Observable<R> toObservable() {
         final AbstractCommand<R> _cmd = this;
 
@@ -461,7 +458,7 @@ import java.util.concurrent.atomic.AtomicReference;
                     //TODO make a new error type for this
                     throw new HystrixRuntimeException(FailureType.BAD_REQUEST_EXCEPTION, _cmd.getClass(), getLogMessagePrefix() + " command executed multiple times - this is not permitted.", ex, null);
                 }
-
+                //记录开始请求时间
                 commandStartTimestamp = System.currentTimeMillis();
 
                 if (properties.requestLogEnabled().get()) {
@@ -475,14 +472,16 @@ import java.util.concurrent.atomic.AtomicReference;
                 final String cacheKey = getCacheKey();
 
                 /* try from cache first */
+                //如果开启缓存
                 if (requestCacheEnabled) {
                     HystrixCommandResponseFromCache<R> fromCache = (HystrixCommandResponseFromCache<R>) requestCache.get(cacheKey);
+                    //如果缓存不为空，取出值，直接返回
                     if (fromCache != null) {
                         isResponseFromCache = true;
                         return handleRequestCacheHitAndEmitValues(fromCache, _cmd);
                     }
                 }
-
+                //如果缓存为空，正常请求逻辑
                 Observable<R> hystrixObservable =
                         Observable.defer(applyHystrixSemantics)
                                 .map(wrapWithAllOnNextHooks);
@@ -490,6 +489,7 @@ import java.util.concurrent.atomic.AtomicReference;
                 Observable<R> afterCache;
 
                 // put in cache
+                //将结果分装至缓存
                 if (requestCacheEnabled && cacheKey != null) {
                     // wrap it for caching
                     HystrixCachedObservable<R> toCache = HystrixCachedObservable.from(hystrixObservable, _cmd);

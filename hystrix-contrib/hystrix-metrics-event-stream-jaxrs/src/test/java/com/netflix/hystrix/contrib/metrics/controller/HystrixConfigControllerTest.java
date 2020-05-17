@@ -23,7 +23,7 @@ public class HystrixConfigControllerTest extends HystricsMetricsControllerTest {
 
 	@Override
 	protected String getPath() {
-		return "hystrix/config.stream";
+		return "hystrix/com.aaron.ren.config.stream";
 	}
 
 	@Override

@@ -33,7 +33,7 @@ class HystrixArchaiusHelper {
      */
     private static class LazyHolder {
         private final static Method loadCascadedPropertiesFromResources;
-        private final static String CONFIG_MANAGER_CLASS = "com.netflix.config.ConfigurationManager";
+        private final static String CONFIG_MANAGER_CLASS = "com.netflix.com.aaron.ren.config.ConfigurationManager";
     
         static {
             Method load = null;

@@ -26,7 +26,7 @@ import rx.functions.Func1;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Streams Hystrix config in text/event-stream format.
+ * Streams Hystrix com.aaron.ren.config in text/event-stream format.
  * <p>
  * Install by:
  * <p>
@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * </servlet>
  * <servlet-mapping>
  *  <servlet-name>HystrixConfigSseServlet</servlet-name>
- *  <url-pattern>/hystrix/config.stream</url-pattern>
+ *  <url-pattern>/hystrix/com.aaron.ren.config.stream</url-pattern>
  * </servlet-mapping>
  * } </pre>
  */

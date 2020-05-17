@@ -43,7 +43,7 @@ public class HystrixStreamApplication extends Application{
 3) Following end-points are available
   * /hystrix.stream - Stream Hystrix Metrics
   * /hystrix/utilization.stream - Stream Hystrix Utilization
-  * /hystrix/config.stream - Stream Hystrix configuration
+  * /hystrix/com.aaron.ren.config.stream - Stream Hystrix configuration
   * /hystrix/request.stream - Stream Hystrix SSE events
   
 

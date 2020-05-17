@@ -79,7 +79,7 @@
 * [Pull 1408](https://github.com/Netflix/Hystrix/pull/1408) Fix Clojure key name for collapsing.  Thanks @crimeminister !
 * [Pull 1407](https://github.com/Netflix/Hystrix/pull/1407) Reset percentile snapshot whenever all HystrixRollingPercentile buckets are empty
 * [Pull 1397](https://github.com/Netflix/Hystrix/pull/1397) Javanica: Add option to raise HystrixRuntimeException
-* [Pull 1399](https://github.com/Netflix/Hystrix/pull/1399) Add configuration to make users opt-in to allowing coreSize and maximumSize to diverge.  See config [here] (https://github.com/Netflix/Hystrix/wiki/Configuration#allowMaximumSizeToDivergeFromCoreSize)
+* [Pull 1399](https://github.com/Netflix/Hystrix/pull/1399) Add configuration to make users opt-in to allowing coreSize and maximumSize to diverge.  See com.aaron.ren.config [here] (https://github.com/Netflix/Hystrix/wiki/Configuration#allowMaximumSizeToDivergeFromCoreSize)
 * [Pull 1396](https://github.com/Netflix/Hystrix/pull/1396) If command is unsubscribed before any work is done, return Observable.empty().  
 * [Pull 1393](https://github.com/Netflix/Hystrix/pull/1393) Javanica: Performance improvement by caching weavingMode boolean.  Thanks @ricardoletgo !
 * [Pull 1389](https://github.com/Netflix/Hystrix/pull/1389) Javanica: Send fallback exception to client instead of primary command.  Thanks @dmgcodevil !
@@ -253,7 +253,7 @@ A few dependency bumps, but the major change here is that Archaius is now a soft
  
 Included changes: 
 
-* [Pull 1079](https://github.com/Netflix/Hystrix/pull/1079) Remove dynamic config lookup in HystrixThreadPool
+* [Pull 1079](https://github.com/Netflix/Hystrix/pull/1079) Remove dynamic com.aaron.ren.config lookup in HystrixThreadPool
 * [Pull 1081](https://github.com/Netflix/Hystrix/pull/1081) Cleanup hystrix-javanica BadRequest docs
 * [Pull 1093](https://github.com/Netflix/Hystrix/pull/1093) Fix NPE in HystrixRequestCache when HystrixRequestContext not initialized
 * [Pull 1083](https://github.com/Netflix/Hystrix/pull/1083) Made Archaius a soft dependency of hystrix-core.  It is now possible to run without Archaius and rely on j.u.l.ServiceLoader or system properties only
@@ -270,7 +270,7 @@ This is mostly a new set of features building on top of Release Candidate 1.  Sp
 Included changes: 
 
 * [Pull 1050](https://github.com/Netflix/Hystrix/pull/1050) Modular command construction
-* [Pull 1061](https://github.com/Netflix/Hystrix/pull/1061) Sample config/utilization streams, and request-scoped streams
+* [Pull 1061](https://github.com/Netflix/Hystrix/pull/1061) Sample com.aaron.ren.config/utilization streams, and request-scoped streams
 * [Pull 1064](https://github.com/Netflix/Hystrix/pull/1064) Safer enum references in case mismatched Hystrix jars are deployed together
 * [Pull 1066](https://github.com/Netflix/Hystrix/pull/1066) Layer of abstraction on top of ThreadFactory, so AppEngine can run Hystrix
 * [Pull 1067](https://github.com/Netflix/Hystrix/pull/1067) Decouple sample stream JSON from servlets
@@ -297,7 +297,7 @@ Artifacts: [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com
 
 ### Version 1.4.23 ([Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.netflix.hystrix%22%20AND%20v%3A%221.4.23%22), [Bintray](https://bintray.com/netflixoss/maven/Hystrix/1.4.23/)) ###
 
-* [Pull 1032](https://github.com/Netflix/Hystrix/pull/1032) Make number of timer threads a piece of config (with Archaius integration)
+* [Pull 1032](https://github.com/Netflix/Hystrix/pull/1032) Make number of timer threads a piece of com.aaron.ren.config (with Archaius integration)
 * [Pull 1045](https://github.com/Netflix/Hystrix/pull/1045) Documentation cleanup in HystrixCommandProperties
 * [Pull 1044](https://github.com/Netflix/Hystrix/pull/1044) Add request context and HystrixObservableCommand to command execution JMH tests
 * [Pull 1043](https://github.com/Netflix/Hystrix/pull/1043) HystrixObservableCollapser emits error to each submitter when batch command encounters error

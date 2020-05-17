@@ -21,7 +21,7 @@ import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixThreadPoolKey;
 
 public class HystrixCommandConfiguration {
-    //The idea is for this object to be serialized off-box.  For future-proofing, I'm adding a version so that changing config over time can be handled gracefully
+    //The idea is for this object to be serialized off-box.  For future-proofing, I'm adding a version so that changing com.aaron.ren.config over time can be handled gracefully
     private static final String VERSION = "1";
     private final HystrixCommandKey commandKey;
     private final HystrixThreadPoolKey threadPoolKey;

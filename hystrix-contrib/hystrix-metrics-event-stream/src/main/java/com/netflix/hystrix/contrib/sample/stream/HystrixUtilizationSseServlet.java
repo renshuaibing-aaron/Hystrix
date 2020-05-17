@@ -26,7 +26,7 @@ import rx.functions.Func1;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Streams Hystrix config in text/event-stream format.
+ * Streams Hystrix com.aaron.ren.config in text/event-stream format.
  * <p>
  * Install by:
  * <p>

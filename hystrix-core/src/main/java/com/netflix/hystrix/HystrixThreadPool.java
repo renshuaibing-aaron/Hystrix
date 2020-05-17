@@ -1,18 +1,3 @@
-/**
- * Copyright 2012 Netflix, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.netflix.hystrix;
 
 import com.netflix.hystrix.strategy.HystrixPlugins;
@@ -86,17 +71,20 @@ public interface HystrixThreadPool {
      * @ExcludeFromJavadoc
      */
     /* package */static class Factory {
+
+
         /*
+        threadPools保存了Hystrix所有的线程池
          * Use the String from HystrixThreadPoolKey.name() instead of the HystrixThreadPoolKey instance as it's just an interface and we can't ensure the object
          * we receive implements hashcode/equals correctly and do not want the default hashcode/equals which would create a new threadpool for every object we get even if the name is the same
          */
         /* package */final static ConcurrentHashMap<String, HystrixThreadPool> threadPools = new ConcurrentHashMap<String, HystrixThreadPool>();
 
         /**
+         * 通过key获取对应的线程池，如果没有则调用new HystrixThreadPoolDefault新建，并且添加到threadPools中
          * Get the {@link HystrixThreadPool} instance for a given {@link HystrixThreadPoolKey}.
          * <p>
          * This is thread-safe and ensures only 1 {@link HystrixThreadPool} per {@link HystrixThreadPoolKey}.
-         *
          * @return {@link HystrixThreadPool} instance
          */
         /* package */static HystrixThreadPool getInstance(HystrixThreadPoolKey threadPoolKey, HystrixThreadPoolProperties.Setter propertiesBuilder) {
@@ -168,6 +156,9 @@ public interface HystrixThreadPool {
         private final HystrixThreadPoolMetrics metrics;
         private final int queueSize;
 
+
+        //对Java原生ThreadPoolExecutor的一层封装
+        //在此构造函数中对Hystrix的线程池的属性、指标信息（metrics）以及任务队列的初始化工作。真正创建Java原生线程池是concurrencyStrategy.getThreadPool(threadPoolKey, properties)
         public HystrixThreadPoolDefault(HystrixThreadPoolKey threadPoolKey, HystrixThreadPoolProperties.Setter propertiesDefaults) {
             this.properties = HystrixPropertiesFactory.getThreadPoolProperties(threadPoolKey, propertiesDefaults);
             HystrixConcurrencyStrategy concurrencyStrategy = HystrixPlugins.getInstance().getConcurrencyStrategy();

@@ -32,7 +32,7 @@ import com.netflix.hystrix.metric.sample.HystrixUtilizationStream;
 import com.netflix.hystrix.serial.SerialHystrixUtilization;
 
 /**
- * Streams Hystrix config in text/event-stream format.
+ * Streams Hystrix com.aaron.ren.config in text/event-stream format.
  * <p>
  * Install by:
  * <p>
