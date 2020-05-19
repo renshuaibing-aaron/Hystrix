@@ -126,11 +126,11 @@ public interface HystrixCircuitBreaker {
      * @ThreadSafe
      */
     /* package */class HystrixCircuitBreakerImpl implements HystrixCircuitBreaker {
+
         private final HystrixCommandProperties properties;
         private final HystrixCommandMetrics metrics;
 
         //Hystrix 内置断路器 HystrixCircuitBreaker 实现，一共有三种状态
-        //
         enum Status {
             CLOSED,//关闭
             OPEN, //打开
@@ -138,7 +138,9 @@ public interface HystrixCircuitBreaker {
         }
 
         private final AtomicReference<Status> status = new AtomicReference<Status>(Status.CLOSED);
+        //记录上一次断路器被打开的时间戳，如果上一次断路器是关闭状态，那么该值就是 -1
         private final AtomicLong circuitOpened = new AtomicLong(-1);
+        //基于 Hystrix Metrics 对请求量统计 Observable 的订阅
         private final AtomicReference<Subscription> activeSubscription = new AtomicReference<Subscription>(null);
 
         protected HystrixCircuitBreakerImpl(HystrixCommandKey key, HystrixCommandGroupKey commandGroup, final HystrixCommandProperties properties, HystrixCommandMetrics metrics) {

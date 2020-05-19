@@ -138,7 +138,9 @@ import java.util.concurrent.atomic.AtomicReference;
         defaultNameCache.put(cls, name);
         return name;
     }
-
+    /**
+     这个方法是AbstractCommand的构造方法，里面用于初使化AbstractCommand，包括circuitBreaker 与线程池对象都在这里进行构造
+     **/
     protected AbstractCommand(HystrixCommandGroupKey group, HystrixCommandKey key, HystrixThreadPoolKey threadPoolKey, HystrixCircuitBreaker circuitBreaker, HystrixThreadPool threadPool,
             HystrixCommandProperties.Setter commandPropertiesDefaults, HystrixThreadPoolProperties.Setter threadPoolPropertiesDefaults,
             HystrixCommandMetrics metrics, TryableSemaphore fallbackSemaphore, TryableSemaphore executionSemaphore,
@@ -147,10 +149,11 @@ import java.util.concurrent.atomic.AtomicReference;
         System.out.println("【初始化AbstractCommand】");
         //初始化group，group主要是用来对不同的command key进行统一管理
         this.commandGroup = initGroupKey(group);
-        // 初始化command key，用来标识降级逻辑
+        // 初始化command key，用来标识降级逻辑  默认是以类为为名称的
         this.commandKey = initCommandKey(key, getClass());
         // 初始化自定义的降级策略
         this.properties = initCommandProperties(this.commandKey, propertiesStrategy, commandPropertiesDefaults);
+
         // 初始化线程池key，相同的线程池key将公用线程池
         this.threadPoolKey = initThreadPoolKey(threadPoolKey, this.commandGroup, this.properties.executionIsolationThreadPoolKeyOverride().get());
 
@@ -266,6 +269,7 @@ import java.util.concurrent.atomic.AtomicReference;
     }
 
     private static HystrixThreadPool initThreadPool(HystrixThreadPool fromConstructor, HystrixThreadPoolKey threadPoolKey, HystrixThreadPoolProperties.Setter threadPoolPropertiesDefaults) {
+        System.out.println("【初始化线程池】");
         if (fromConstructor == null) {
             // get the default implementation of HystrixThreadPool
             return HystrixThreadPool.Factory.getInstance(threadPoolKey, threadPoolPropertiesDefaults);
@@ -567,6 +571,7 @@ import java.util.concurrent.atomic.AtomicReference;
      * @return R
      */
     private Observable<R> executeCommandAndObserve(final AbstractCommand<R> _cmd) {
+        System.out.println("【正常执行逻辑executeCommandAndObserve】");
         final HystrixRequestContext currentRequestContext = HystrixRequestContext.getContextForCurrentThread();
 
         final Action1<R> markEmits = new Action1<R>() {
@@ -602,12 +607,15 @@ import java.util.concurrent.atomic.AtomicReference;
         final Func1<Throwable, Observable<R>> handleFallback = new Func1<Throwable, Observable<R>>() {
             @Override
             public Observable<R> call(Throwable t) {
+                // 标记尝试成功
                 circuitBreaker.markNonSuccess();
+                // 标记 executionResult 执行异常
                 Exception e = getExceptionFromThrowable(t);
                 executionResult = executionResult.setExecutionException(e);
-                if (e instanceof RejectedExecutionException) {
+                // 返回 【回退逻辑 Observable】
+                if (e instanceof RejectedExecutionException) {  // 线程池提交任务拒绝异常
                     return handleThreadPoolRejectionViaFallback(e);
-                } else if (t instanceof HystrixTimeoutException) {
+                } else if (t instanceof HystrixTimeoutException) { // 执行命令超时异常
                     return handleTimeoutViaFallback();
                 } else if (t instanceof HystrixBadRequestException) {
                     return handleBadRequestByEmittingError(e);
@@ -619,7 +627,7 @@ import java.util.concurrent.atomic.AtomicReference;
                         eventNotifier.markEvent(HystrixEventType.BAD_REQUEST, commandKey);
                         return Observable.error(e);
                     }
-
+                     //处理命令执行异常的回退逻辑
                     return handleFailureViaFallback(e);
                 }
             }
@@ -640,6 +648,9 @@ import java.util.concurrent.atomic.AtomicReference;
             execution = executeCommandWithSpecifiedIsolation(_cmd);
         }
 
+        //todo 注意这个地方
+        // onErrorResumeNext 方法返回一个镜像原有 Observable 行为的新 Observable ，
+        //  后者会忽略前者的 onError 调用，不会将错误传递给观察者，作为替代，它会开始镜像另一个，备用的 Observable
         return execution.doOnNext(markEmits)
                 .doOnCompleted(markOnCompleted)
                 .onErrorResumeNext(handleFallback)
@@ -756,26 +767,31 @@ import java.util.concurrent.atomic.AtomicReference;
      *             if getFallback() fails (throws an Exception) or is rejected by the semaphore
      */
     private Observable<R> getFallbackOrThrowException(final AbstractCommand<R> _cmd, final HystrixEventType eventType, final FailureType failureType, final String message, final Exception originalException) {
+
+        System.out.println("获得【回退逻辑 Observable】或者【异常 Observable】");
+        // 记录 HystrixRequestContext
         final HystrixRequestContext requestContext = HystrixRequestContext.getContextForCurrentThread();
+        // 标记 executionResult 添加( 记录 )事件
         long latency = System.currentTimeMillis() - executionResult.getStartTimestamp();
         // record the executionResult
         // do this before executing fallback so it can be queried from within getFallback (see See https://github.com/Netflix/Hystrix/pull/144)
         executionResult = executionResult.addEvent((int) latency, eventType);
 
-        if (isUnrecoverable(originalException)) {
+        if (isUnrecoverable(originalException)) { // 无法恢复的异常
             logger.error("Unrecoverable Error for HystrixCommand so will throw HystrixRuntimeException and not apply fallback. ", originalException);
 
             /* executionHook for all errors */
             Exception e = wrapWithOnErrorHook(failureType, originalException);
+            // 返回 【异常 Observable】
             return Observable.error(new HystrixRuntimeException(failureType, this.getClass(), getLogMessagePrefix() + " " + message + " and encountered unrecoverable error.", e, null));
         } else {
-            if (isRecoverableError(originalException)) {
+            if (isRecoverableError(originalException)) { // 可恢复的异常
                 logger.warn("Recovered from java.lang.Error by serving Hystrix fallback", originalException);
             }
 
             if (properties.fallbackEnabled().get()) {
                 /* fallback behavior is permitted so attempt */
-
+                // 设置 HystrixRequestContext 的 Action
                 final Action1<Notification<? super R>> setRequestContext = new Action1<Notification<? super R>>() {
                     @Override
                     public void call(Notification<? super R> rNotification) {
@@ -964,6 +980,7 @@ import java.util.concurrent.atomic.AtomicReference;
     }
 
     private Observable<R> handleSemaphoreRejectionViaFallback() {
+        System.out.println("【处理信号量获得失败的回退逻辑】");
         Exception semaphoreRejectionException = new RuntimeException("could not acquire a semaphore for execution");
         executionResult = executionResult.setExecutionException(semaphoreRejectionException);
         eventNotifier.markEvent(HystrixEventType.SEMAPHORE_REJECTED, commandKey);
@@ -974,12 +991,17 @@ import java.util.concurrent.atomic.AtomicReference;
     }
 
     private Observable<R> handleShortCircuitViaFallback() {
+        System.out.println("【处理链路处于熔断的回退逻辑】");
         // record that we are returning a short-circuited fallback
+
         eventNotifier.markEvent(HystrixEventType.SHORT_CIRCUITED, commandKey);
+
+        // 标记 executionResult 执行异常
         // short-circuit and go directly to fallback (or throw an exception if no fallback implemented)
         Exception shortCircuitException = new RuntimeException("Hystrix circuit short-circuited and is OPEN");
         executionResult = executionResult.setExecutionException(shortCircuitException);
         try {
+            // 获得 【回退逻辑 Observable】 或者 【异常 Observable】
             return getFallbackOrThrowException(this, HystrixEventType.SHORT_CIRCUITED, FailureType.SHORTCIRCUIT,
                     "short-circuited", shortCircuitException);
         } catch (Exception e) {
@@ -988,6 +1010,7 @@ import java.util.concurrent.atomic.AtomicReference;
     }
 
     private Observable<R> handleThreadPoolRejectionViaFallback(Exception underlying) {
+        System.out.println("【处理线程池提交任务拒绝的回退逻辑】");
         eventNotifier.markEvent(HystrixEventType.THREAD_POOL_REJECTED, commandKey);
         threadPool.markThreadRejection();
         // use a fallback instead (or throw exception if not implemented)
@@ -995,6 +1018,7 @@ import java.util.concurrent.atomic.AtomicReference;
     }
 
     private Observable<R> handleTimeoutViaFallback() {
+        System.out.println("【处理命令执行超时的回退逻辑】");
         return getFallbackOrThrowException(this, HystrixEventType.TIMEOUT, FailureType.TIMEOUT, "timed-out", new TimeoutException());
     }
 
@@ -1022,6 +1046,7 @@ import java.util.concurrent.atomic.AtomicReference;
     }
 
     private Observable<R> handleFailureViaFallback(Exception underlying) {
+        System.out.println("【处理命令执行异常的回退逻辑】");
         /**
          * All other error handling
          */
